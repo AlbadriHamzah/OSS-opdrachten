@@ -1,0 +1,28 @@
+# Install the AzureAD module (if not already installed)
+I# Install the AzureAD module (if not already installed)
+Install-Module -Name AzureAD -Force
+
+# Import the AzureAD module
+Import-Module -Name AzureAD
+
+# Connect to Azure AD
+Connect-AzureAD
+
+# Get all users from Azure AD
+$azureUsers = Get-AzureADUser
+
+# Iterate over each user
+foreach ($user in $azureUsers) {
+    $userName = $user.DisplayName -replace '[^a-zA-Z0-9-_]'
+
+    if (![string]::IsNullOrEmpty($userName)) {
+        $userPrincipalName = $user.UserPrincipalName
+
+        # Create the user in Active Directory without a password
+        New-ADUser -Name $userName -SamAccountName $userName -UserPrincipalName $userPrincipalName -Path "OU=users,OU=s127720,OU=OS Scripting 23,DC=PoliformaHAB,DC=local" -Enabled $true
+
+        # Set the password separately
+        $password = ConvertTo-SecureString -String "Master@12300" -AsPlainText -Force
+        Set-ADAccountPassword -Identity $userName -NewPassword $password
+    }
+}

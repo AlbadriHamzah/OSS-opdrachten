@@ -1,0 +1,31 @@
+# Install the AzureAD module (if not already installed)
+Install-Module -Name AzureAD
+
+# Import the AzureAD module
+Import-Module -Name AzureAD
+
+# Connect to Azure AD
+Connect-AzureAD
+
+# Import the Active Directory module
+Import-Module -Name ActiveDirectory
+
+# Get all groups from Azure AD
+$azureGroups = Get-AzureADGroup
+
+# Iterate over each group
+foreach ($group in $azureGroups) {
+    $groupName = $group.DisplayName -replace '[^a-zA-Z0-9-_]'
+
+    if ($groupName -ne '') {
+        # Create the group in Active Directory
+        $newGroupParams = @{
+            Name        = $groupName
+            SamAccountName = $groupName
+            GroupCategory = "Security"
+            GroupScope    = "Global"
+            Path          = "OU=groups,OU=s127720,OU=OS Scripting 23,DC=PoliformaHAB,DC=local"
+        }
+        New-ADGroup @newGroupParams
+    }
+}
