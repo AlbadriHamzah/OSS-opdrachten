@@ -1,0 +1,64 @@
+# Controleer of de organisatorische eenheid (OU) "OS Scripting 23" al bestaat in het AD-domein.
+# Als de OU niet bestaat, maak deze dan aan.
+$ouName = "OS Scripting 23"
+$ouExists = Get-ADOrganizationalUnit -Filter "Name -eq '$ouName'"
+
+if (!$ouExists) {
+    New-ADOrganizationalUnit -Name $ouName -Path "DC=PoliformaHAB,DC=local"
+    Write-Host "OU '$ouName' is succesvol aangemaakt."  
+}
+else {
+    Write-Host "OU '$ouName' bestaat al." 
+}
+
+
+# Controleer of de OU met de opgegeven accountnaam al bestaat binnen de "OS Scripting 23" OU.
+# Als de OU niet bestaat, maak deze dan aan.
+$parentOU = "OU=OS Scripting 23,DC=PoliformaHAB,DC=local"
+$ouName = "s127720"
+$ouExists = Get-ADOrganizationalUnit -Filter "Name -eq '$ouName'" -SearchBase $parentOU
+
+if (!$ouExists) {
+    $ouPath = "OU=$ouName,$parentOU"
+    New-ADOrganizationalUnit -Name $ouName -Path $parentOU
+    Write-Host "OU '$ouName' is succesvol aangemaakt."  
+}
+else {
+    Write-Host "OU '$ouName' bestaat al."  
+}
+
+# Controleer of de "groups" en "users" OUs al bestaan binnen de account-OU.
+# Als de OUs niet bestaan, maak ze dan aan.
+$parentOU = "OU=s127720,OU=OS Scripting 23,DC=PoliformaHAB,DC=local"
+
+$ouGroupsName = "groups"
+$ouGroupsExists = Get-ADOrganizationalUnit -Filter "Name -eq '$ouGroupsName'" -SearchBase $parentOU
+
+$ouUsersName = "users"
+$ouUsersExists = Get-ADOrganizationalUnit -Filter "Name -eq '$ouUsersName'" -SearchBase $parentOU
+
+if (!$ouGroupsExists) {
+    $ouGroupsPath = "OU=$ouGroupsName,$parentOU"
+    New-ADOrganizationalUnit -Name $ouGroupsName -Path $parentOU
+    Write-Host "OU '$ouGroupsName' is succesvol aangemaakt." 
+}
+
+if (!$ouUsersExists) {
+    $ouUsersPath = "OU=$ouUsersName,$parentOU"
+    New-ADOrganizationalUnit -Name $ouUsersName -Path $parentOU
+    Write-Host "OU '$ouUsersName' is succesvol aangemaakt."  
+}
+--------------------------------------------------------------------------------------
+# Het installeren en importeren van de AzureAD-module voor het beheren van Azure Active Directory.
+Install-Module -Name AzureAD
+Import-Module -Name AzureAD
+Connect-AzureAD
+
+# Het ophalen van groepen uit Azure Active Directory.
+Get-AzureADGroup
+
+# Het ophalen van gebruikers uit Azure Active Directory.
+GetAzureADUser
+-------------------------------------------------------------------------------------
+# Het starten van een PSSession met de opgegeven AD-computer voor het uitvoeren van commando's op afstand.
+Enter-PSSession -ComputerName 192.168.138.201 -Credential (Get-Credential) -Authentication Negotiate
